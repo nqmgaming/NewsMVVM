@@ -6,10 +6,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
+import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.nqmgaming.newsmvvm.R
 import com.nqmgaming.newsmvvm.adapter.NewsAdapter
 import com.nqmgaming.newsmvvm.databinding.FragmentSearchNewsBinding
@@ -68,7 +71,12 @@ class SearchNewsFragment : Fragment() {
                 is Resource.Success -> {
                     hideProgressBar()
                     response.data?.let { newsResponse ->
-                        newsAdapter.differ.submitList(newsResponse.articles)
+                        newsAdapter.differ.submitList(newsResponse.articles.toList())
+                        val totalPages = newsResponse.totalResults / 20 + 2
+                        isLastPage = viewModel.searchNewsPage == totalPages
+//                        if (isLastPage) {
+//                            binding.rvSearchNews.setPadding(0, 0, 0, 0)
+//                        }
                     }
                 }
 
@@ -77,6 +85,11 @@ class SearchNewsFragment : Fragment() {
                     response.message?.let { message ->
                         Log.e("SearchNewsFragment", "An error occurred: $message")
                     }
+                    Toast.makeText(
+                        requireContext(),
+                        "An error occurred: ${response.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
                 is Resource.Loading -> {
@@ -93,13 +106,55 @@ class SearchNewsFragment : Fragment() {
         binding.rvSearchNews.setItemViewCacheSize(20)
         binding.rvSearchNews.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.rvSearchNews.addOnScrollListener(scrollListener)
     }
+
+    var isLoading = false
+    var isLastPage = false
+    var isScrolling = false
+    val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+            val visibleItemCount = layoutManager.childCount
+            val totalItemCount = layoutManager.itemCount
+
+            val isNotLoadingAndNotLastPage = !isLoading && !isLastPage
+            val isAtLastItem = firstVisibleItemPosition + visibleItemCount >= totalItemCount
+            val isNotAtBeginning = firstVisibleItemPosition >= 0
+            val isTotalMoreThanVisible = totalItemCount >= 20
+            val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning &&
+                    isTotalMoreThanVisible && isScrolling
+            if (shouldPaginate) {
+                viewModel.getBreakingNews("us")
+                isScrolling = false
+            } else {
+                // If it's the last page, reset page count to allow further loading
+                if (isLastPage) {
+                    viewModel.breakingNewsPage = 1
+                    isLastPage = false
+                }
+            }
+
+        }
+
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+                isScrolling = true
+            }
+        }
+    }
+
 
     private fun hideProgressBar() {
         binding.paginationProgressBar.visibility = View.INVISIBLE
+        isLoading = false
     }
 
     private fun showProgressBar() {
         binding.paginationProgressBar.visibility = View.VISIBLE
+        isLoading = true
     }
 }

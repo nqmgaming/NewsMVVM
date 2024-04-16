@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.nqmgaming.newsmvvm.NewsApplication
 import com.nqmgaming.newsmvvm.R
 import com.nqmgaming.newsmvvm.databinding.ActivityMainBinding
 import com.nqmgaming.newsmvvm.db.ArticleDatabase
@@ -17,7 +18,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     val viewModel: NewsViewModel by lazy {
         val repository = NewsRepository(ArticleDatabase(this))
-        val viewModelProviderFactory = NewModelProviderFactory(repository)
+        val viewModelProviderFactory =
+            NewModelProviderFactory(application as NewsApplication, repository)
         ViewModelProvider(this, viewModelProviderFactory).get(NewsViewModel::class.java)
     }
 
