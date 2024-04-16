@@ -24,6 +24,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <argument
+            android:name="article"
+            app:argType="com.nqmgaming.newsmvvm.model.Article" />
     </fragment>
     <fragment
         android:id="@+id/breakingNewsFragment"
@@ -64,6 +67,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_savedNewsFragment_to_articleFragment"
+            app:destination="@id/articleFragment" />
     </fragment>
     <fragment
         android:id="@+id/searchNewsFragment"

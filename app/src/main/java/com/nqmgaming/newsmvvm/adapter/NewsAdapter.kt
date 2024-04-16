@@ -32,11 +32,6 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ArticleViewHolder>() {
             }
         }
 
-        private var onItemClickListener: ((Article) -> Unit)? = null
-
-        fun setOnItemClickListener(listener: (Article) -> Unit) {
-            onItemClickListener = listener
-        }
 
     }
 
@@ -65,5 +60,10 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ArticleViewHolder>() {
     }
 
     val differ = AsyncListDiffer(this, differCallback)
+    private var onItemClickListener: ((Article) -> Unit)? = null
+
+    fun setOnItemClickListener(listener: (Article) -> Unit) {
+        onItemClickListener = listener
+    }
 
 }
